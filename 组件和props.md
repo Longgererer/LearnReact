@@ -86,3 +86,123 @@ ReactDOM.render(
 ````
 一个`App`引用多个`ItemList`做子组件
 
+### 提取组件
+如果一个组件太过于复杂，就要把其中的一些部分提取出来，拆分成更小的组件  
+
+````javascript
+function header(props){
+    return (
+        <div className="header">
+            <div className="header-img">
+                <image src={props.avatarUrl}/>
+            </div>
+            <div className="header-name">
+                <span>{props.user.nickName}</span>
+            </div>
+            <div className="header-create-time">
+                {props.user.createTime}
+            </div>
+            <div className="header-active">
+                <p className="header-active-content">
+                    {props.user.text}
+                </p>
+            </div>
+        </div>
+    )
+}
+````
+假设上面就是一个显示动态功能的组件，因为组件中包含了很多标签和嵌套，这给组件的重复使用造成了困难，所以应该拆分成更小的组件  
+
+比如把头像单独提取成一个组件：
+````javascript
+function HeaderImg(props){
+    return (
+        <div className={props.imgClass}>
+            <image src={props.url}/>
+        </div>
+    )
+}
+function Header(props){
+    return (
+        <div className="header">
+            <HeaderImg imgClass="header-img" url={props.user.avatarUrl}/>
+            <div className="header-name">
+                <span>{props.user.nickName}</span>
+            </div>
+            <div className="header-create-time">
+                {props.user.createTime}
+            </div>
+            <div className="header-active">
+                <p className="header-active-content">
+                    {props.user.text}
+                </p>
+            </div>
+        </div>
+    )
+}
+````
+这样就将头像提取成组件了，按照上面的方法继续拆分其他的：
+````javascript
+function HeaderImg(props){
+    return (
+        <div className={props.imgClass}>
+            <img src={props.url}/>
+        </div>
+    )
+}
+function HeaderName(props){
+    return (
+        <div className={props.nameClass}>
+            <span>{props.name}</span>
+        </div>
+    )
+}
+function CreateTime(props){
+    return (
+        <div className={props.ctTimeClass}>
+            <span>{props.ctTime}</span>
+        </div>
+    )
+}
+function HeaderActive(props){
+    return (
+        <div className={props.actClass}>
+            <p className="header-active-content">
+                {props.text}
+            </p>
+        </div>
+    )
+}
+function Header(props){
+    return (
+        <div className="header">
+            <HeaderImg imgClass="header-img" url={props.user.avatarUrl}/>
+            <HeaderName nameClass="header-name" name={props.user.nickName}/>
+            <CreateTime ctTimeClass="header-create-time" ctTime={props.user.createTime}/>
+            <HeaderActive actClass="header-active" text={props.user.text}/>
+        </div>
+    )
+}
+````
+虽然代码量多了不少，但是维护更加容易，还能多次复用
+> react的图片标签是\<img>，不是\<image>，之前我用\<image>浏览器就报错，不知道为什么，研究好一会才发现
+
+### 只读的Props
+很重要的是：**Props是只读的**
+只读就意味着`React`组件无论是用什么方法创建的组件（函数还是class）都不能改变自身的`props`
+
+#### 纯函数
+````javascript
+function sum(a, b) {
+    return a + b
+}
+````
+像这种不会更改传入参数值的函数叫做纯函数，相反：
+````javascript
+function sum(a, b) {
+    a --
+}
+````
+这种更改传入参数的函数就不是纯函数
+
+**所有 React 组件都必须像纯函数一样保护它们的 props 不被更改。**
